@@ -1,10 +1,13 @@
 from typing import TYPE_CHECKING, Any
 
-from advanced_alchemy import SQLAlchemyAsyncRepository, SQLAlchemyAsyncRepositoryService
+from advanced_alchemy import SQLAlchemyAsyncRepository
 from advanced_alchemy.base import UUIDAuditBase
 from sqlalchemy import String, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import Mapped, mapped_column, relationship
+
+from lib.service import SQLAlchemyAsyncRepositoryService
+from schemas.topic import ListTopic
 
 if TYPE_CHECKING:
     from models import Test

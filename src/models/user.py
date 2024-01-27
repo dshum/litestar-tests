@@ -40,6 +40,10 @@ class User(UUIDAuditBase):
     def is_admin(self) -> bool:
         return self.role == UserRole.ADMIN
 
+    @property
+    def name(self) -> bool:
+        return self.first_name + " " + self.last_name
+
     def verify_password(self, password: str) -> bool:
         return bcrypt.checkpw(
             password=password.encode(),

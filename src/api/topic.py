@@ -1,7 +1,7 @@
 from uuid import UUID
 
 from advanced_alchemy.filters import LimitOffset, OrderBy
-from litestar import Controller, get, post, put, delete
+from litestar import Controller, get, post, put, delete, Request
 from litestar.di import Provide
 from litestar.pagination import OffsetPagination
 from litestar.params import Parameter
@@ -34,13 +34,7 @@ class TopicController(Controller):
             order_by: OrderBy,
     ) -> OffsetPagination[ListTopic]:
         topics, count = await topic_service.list_and_count(limit_offset, order_by)
-        type_adapter = TypeAdapter(list[ListTopic])
-        return OffsetPagination[ListTopic](
-            items=type_adapter.validate_python(topics),
-            total=count,
-            limit=limit_offset.limit,
-            offset=limit_offset.offset,
-        )
+        return await topic_service.offset_pagination(topics, count, limit_offset, ListTopic)
 
     @get(path="/topics/{topic_id:uuid}")
     async def get_topic(
@@ -64,7 +58,7 @@ class TopicController(Controller):
             )
     ) -> DetailedTopic:
         data = data.model_dump()
-        topic = await topic_service.update(Topic(**data), item_id=topic_id, auto_commit=True)
+        topic = await topic_service.update_and_log(Topic(**data), topic_id)
         return DetailedTopic.model_validate(topic)
 
     @delete(path="/topics/{topic_id:uuid}")

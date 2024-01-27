@@ -1,6 +1,7 @@
 from collections.abc import AsyncGenerator
 from typing import Literal
 
+from litestar import Request
 from litestar.exceptions import ClientException
 from litestar.params import Parameter
 from litestar.repository.filters import LimitOffset, OrderBy
@@ -10,6 +11,7 @@ from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
+from models.model_action_log import ModelActionLogService
 from models.topic import TopicService
 from models.user import UserRepository, User
 from services.auth import AuthService
@@ -75,5 +77,9 @@ async def provide_login_user_repo(db_session: AsyncSession) -> UserRepository:
     )
 
 
-async def provide_topic_service(db_session: AsyncSession) -> TopicService:
-    return TopicService(session=db_session)
+async def provide_log_service(request: Request, db_session: AsyncSession) -> ModelActionLogService:
+    return ModelActionLogService(session=db_session, request=request)
+
+
+async def provide_topic_service(db_session: AsyncSession, log_service: ModelActionLogService) -> TopicService:
+    return TopicService(session=db_session, log_service=log_service)

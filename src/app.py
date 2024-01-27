@@ -6,7 +6,7 @@ from litestar.exceptions import ValidationException, NotAuthorizedException, HTT
 from litestar.status_codes import HTTP_500_INTERNAL_SERVER_ERROR
 
 from api.auth import AuthController
-from api.dependencies import provide_limit_offset_pagination, provide_order_by
+from api.dependencies import provide_limit_offset_pagination, provide_order_by, provide_log_service
 from api.topic import TopicController
 from api.user import UserController
 from lib import sentry, database, settings
@@ -28,6 +28,7 @@ app = Litestar(
     on_startup=[sentry.on_startup, database.on_startup],
     on_app_init=[jwt_auth.on_app_init],
     dependencies={
+        "log_service": Provide(provide_log_service),
         "limit_offset": Provide(provide_limit_offset_pagination),
         "order_by": Provide(provide_order_by)
     },
