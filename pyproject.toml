@@ -1,0 +1,24 @@
+[project]
+name = "litestar-tests"
+version = "0.1.0"
+description = "Default template for PDM package"
+authors = [
+    {name = "Denis Shumeev", email = "denis-shumeev@yandex.ru"},
+]
+dependencies = [
+    "litestar[jwt,sqlalchemy,standard]>=2.5.0",
+    "sqlalchemy>=2.0.25",
+    "pydantic-settings>=2.1.0",
+    "sentry-sdk>=1.39.1",
+    "asyncpg>=0.29.0",
+    "multidict>=6.0.4",
+    "pydantic[email]>=2.5.3",
+    "bcrypt>=4.1.2",
+]
+requires-python = "==3.12.*"
+readme = "README.md"
+license = {text = "MIT"}
+
+
+[tool.pdm]
+package-type = "application"
