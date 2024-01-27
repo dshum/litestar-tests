@@ -24,5 +24,5 @@ class DetailedTopic(BaseModel):
     created_at: datetime
 
 
-class WriteTopic(BaseModel):
+class WriteTopicPayload(BaseModel):
     title: str

@@ -1,15 +1,15 @@
 from uuid import UUID
 
 from advanced_alchemy.filters import LimitOffset, OrderBy
-from litestar import Controller, get, post
+from litestar import Controller, get, post, put, delete
 from litestar.di import Provide
 from litestar.pagination import OffsetPagination
 from litestar.params import Parameter
 from pydantic import TypeAdapter
 
 from api.dependencies import provide_topic_service
-from models.topic import TopicService
-from schemas.topic import ListTopic, WriteTopic, DetailedTopic
+from models.topic import TopicService, Topic
+from schemas.topic import ListTopic, WriteTopicPayload, DetailedTopic
 
 
 class TopicController(Controller):
@@ -21,7 +21,7 @@ class TopicController(Controller):
     async def create_topic(
             self,
             topic_service: TopicService,
-            data: WriteTopic,
+            data: WriteTopicPayload,
     ) -> DetailedTopic:
         new_topic = await topic_service.create(data.model_dump(), auto_commit=True)
         return DetailedTopic.model_validate(new_topic)
@@ -48,7 +48,32 @@ class TopicController(Controller):
             topic_service: TopicService,
             topic_id: UUID = Parameter(
                 title="Topic ID",
-                description="The topic to retrieve.",
+                description="The topic to retrieve",
             )) -> DetailedTopic:
         topic = await topic_service.get(topic_id)
         return DetailedTopic.model_validate(topic)
+
+    @put(path="/topics/{topic_id:uuid}")
+    async def update_topic(
+            self,
+            topic_service: TopicService,
+            data: WriteTopicPayload,
+            topic_id: UUID = Parameter(
+                title="Topic ID",
+                description="The topic to update",
+            )
+    ) -> DetailedTopic:
+        data = data.model_dump()
+        topic = await topic_service.update(Topic(**data), item_id=topic_id, auto_commit=True)
+        return DetailedTopic.model_validate(topic)
+
+    @delete(path="/topics/{topic_id:uuid}")
+    async def delete_user(
+            self,
+            topic_service: TopicService,
+            topic_id: UUID = Parameter(
+                title="Topic ID",
+                description="The topic to delete",
+            ),
+    ) -> None:
+        await topic_service.delete(topic_id, auto_commit=True)
