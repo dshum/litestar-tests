@@ -18,6 +18,15 @@ class TopicController(Controller):
         "topic_service": Provide(provide_topic_service),
     }
 
+    @post(path="/")
+    async def create_topic(
+            self,
+            topic_service: TopicService,
+            data: WriteTopicPayload,
+    ) -> DetailedTopic:
+        new_topic = await topic_service.create(data.model_dump(), auto_commit=True)
+        return DetailedTopic.model_validate(new_topic)
+
     @get(path="/")
     async def list_topics(
             self,
@@ -38,3 +47,28 @@ class TopicController(Controller):
             )) -> DetailedTopic:
         topic = await topic_service.get(topic_id)
         return DetailedTopic.model_validate(topic)
+
+    @put(path="/{topic_id:uuid}")
+    async def update_topic(
+            self,
+            topic_service: TopicService,
+            data: WriteTopicPayload,
+            topic_id: UUID = Parameter(
+                title="Topic ID",
+                description="The topic to update",
+            )
+    ) -> DetailedTopic:
+        data = data.model_dump()
+        topic = await topic_service.update_and_log(Topic(**data), topic_id)
+        return DetailedTopic.model_validate(topic)
+
+    @delete(path="/{topic_id:uuid}")
+    async def delete_user(
+            self,
+            topic_service: TopicService,
+            topic_id: UUID = Parameter(
+                title="Topic ID",
+                description="The topic to delete",
+            ),
+    ) -> None:
+        await topic_service.delete(topic_id, auto_commit=True)

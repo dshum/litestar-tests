@@ -14,11 +14,8 @@ class ListTopic(BaseModel):
     created_at: datetime
 
 
-class DetailedTopic(BaseModel):
-    id: UUID
-    title: str
+class DetailedTopic(ListTopic):
     tests: list[ListTest]
-    created_at: datetime
 
 
 class WriteTopicPayload(BaseModel):

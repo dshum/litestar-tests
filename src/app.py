@@ -5,10 +5,9 @@ from litestar.di import Provide
 from litestar.exceptions import ValidationException, NotAuthorizedException, HTTPException, NotFoundException
 from litestar.status_codes import HTTP_500_INTERNAL_SERVER_ERROR
 
-from api.auth import AuthController
+from api import site_router
+from api.admin import admin_router
 from api.dependencies import provide_limit_offset_pagination, provide_order_by, provide_log_service
-from api.topic import TopicController
-from api.user import UserController
 from lib import sentry, database, settings
 from lib.database import db_config
 from lib.exceptions import (
@@ -21,7 +20,7 @@ from lib.jwt_auth import jwt_auth
 from lib.logs import logging_config
 
 app = Litestar(
-    route_handlers=[AuthController, UserController, TopicController],
+    route_handlers=[site_router, admin_router],
     plugins=[
         SQLAlchemyPlugin(db_config),
     ],

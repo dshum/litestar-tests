@@ -17,7 +17,7 @@ def default_exception_handler(request: Request, exc: HTTPException) -> Response:
         "detail": detail,
         "status_code": status_code,
     }
-    if hasattr(exc, "extra"):
+    if hasattr(exc, "extra") and exc.extra:
         content.update({"extra": exc.extra})
 
     return Response(

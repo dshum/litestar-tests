@@ -1,12 +1,15 @@
 from enum import Enum
+from uuid import UUID
 
 import bcrypt
 from advanced_alchemy import SQLAlchemyAsyncRepository
 from advanced_alchemy.base import UUIDAuditBase
 from pydantic import SecretStr
-from sqlalchemy import String
+from sqlalchemy import String, select
 from sqlalchemy.ext.hybrid import hybrid_property
 from sqlalchemy.orm import Mapped, mapped_column
+
+from lib.service import SQLAlchemyAsyncRepositoryService
 
 
 class UserRole(str, Enum):
@@ -53,3 +56,12 @@ class User(UUIDAuditBase):
 
 class UserRepository(SQLAlchemyAsyncRepository[User]):
     model_type = User
+
+
+class UserService(SQLAlchemyAsyncRepositoryService[User]):
+    repository_type = UserRepository
+
+    async def check_unique_email(self, email: str, user_id: UUID) -> bool:
+        statement = select(User).where(User.email == email, User.id != user_id)
+        user_count = await self.count(statement=statement)
+        return user_count < 1

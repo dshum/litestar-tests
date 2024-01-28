@@ -1,14 +1,15 @@
 from datetime import datetime
 from uuid import UUID
 
-from pydantic import EmailStr, SecretStr, field_validator, model_validator
+from pydantic import EmailStr, field_validator
 from pydantic_core import PydanticCustomError
+from pydantic_core.core_schema import ValidationInfo
 
 from models.user import UserRole
 from schemas import BaseModel
 
 
-class ReadUser(BaseModel):
+class ListUser(BaseModel):
     id: UUID
     email: EmailStr
     first_name: str
@@ -17,7 +18,11 @@ class ReadUser(BaseModel):
     created_at: datetime
 
 
-class WriteUser(BaseModel):
+class DetailedUser(ListUser):
+    ...
+
+
+class WriteUserPayload(BaseModel):
     email: EmailStr
     first_name: str
     last_name: str
@@ -36,22 +41,3 @@ class WriteUser(BaseModel):
     @classmethod
     def validate_email(cls, value: EmailStr):
         return value.lower()
-
-
-class LoginUser(BaseModel):
-    email: EmailStr
-    password: SecretStr
-
-
-class UpdatePassword(BaseModel):
-    current_password: SecretStr
-    password: SecretStr
-    confirm_password: SecretStr
-
-    @model_validator(mode="after")
-    def check_passwords_match(self) -> "UpdatePassword":
-        pw1 = self.password
-        pw2 = self.confirm_password
-        if pw1 is not None and pw2 is not None and pw1 != pw2:
-            raise PydanticCustomError("Qwe", "Passwords do not match")
-        return self

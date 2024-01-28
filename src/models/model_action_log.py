@@ -1,6 +1,6 @@
 import json
 from enum import Enum
-from typing import Any
+from typing import Any, TYPE_CHECKING
 from uuid import UUID
 
 from advanced_alchemy import SQLAlchemyAsyncRepository, SQLAlchemyAsyncRepositoryService, ModelT
@@ -10,7 +10,8 @@ from sqlalchemy import String, Text, ForeignKey
 from sqlalchemy.ext.asyncio import AsyncSession, async_scoped_session
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
-from models import User
+if TYPE_CHECKING:
+    from models import User
 
 
 class ActionType(str, Enum):
@@ -27,7 +28,7 @@ class ModelActionLog(UUIDAuditBase):
     action: Mapped[ActionType | None] = mapped_column(default=None)
     data: Mapped[str | None] = mapped_column(Text, default=None)
     user_id: Mapped[UUID] = mapped_column(ForeignKey("users.id", ondelete="restrict"))
-    user: Mapped[User] = relationship(
+    user: Mapped["User"] = relationship(
         foreign_keys="ModelActionLog.user_id",
         lazy="noload",
     )
@@ -59,7 +60,7 @@ class ModelActionLogService(SQLAlchemyAsyncRepositoryService[ModelActionLog]):
             model_name=str(model.__class__.__name__),
             object_id=object_id,
             action=action,
-            data=json.dumps(model.to_dict()),
+            data=json.dumps({}),
             user=self.request.user,
         )
         await self.create(log)
