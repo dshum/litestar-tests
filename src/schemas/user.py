@@ -2,11 +2,10 @@ from datetime import datetime
 from uuid import UUID
 
 from pydantic import EmailStr, field_validator
-from pydantic_core import PydanticCustomError
-from pydantic_core.core_schema import ValidationInfo
 
 from models.user import UserRole
 from schemas import BaseModel
+from schemas.test import ListTest
 
 
 class ListUser(BaseModel):
