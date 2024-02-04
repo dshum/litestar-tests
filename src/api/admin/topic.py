@@ -59,7 +59,7 @@ class TopicController(Controller):
             )
     ) -> DetailedTopic:
         data = data.model_dump()
-        topic = await topic_service.update_and_log(Topic(**data), topic_id)
+        topic = await topic_service.update(Topic(**data), topic_id)
         return DetailedTopic.model_validate(topic)
 
     @delete(path="/{topic_id:uuid}")

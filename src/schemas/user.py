@@ -1,4 +1,5 @@
 from datetime import datetime
+from typing import List
 from uuid import UUID
 
 from pydantic import EmailStr, field_validator
@@ -18,7 +19,7 @@ class ListUser(BaseModel):
 
 
 class DetailedUser(ListUser):
-    ...
+    pass
 
 
 class WriteUserPayload(BaseModel):

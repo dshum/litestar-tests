@@ -1,11 +1,7 @@
 from datetime import datetime
-from typing import TYPE_CHECKING, Optional
 from uuid import UUID
 
-from pydantic import ConfigDict, computed_field
-
 from schemas import BaseModel
-from schemas.test import ListTest
 
 
 class ListTopic(BaseModel):
@@ -14,8 +10,13 @@ class ListTopic(BaseModel):
     created_at: datetime
 
 
+class JoinedTopic(BaseModel):
+    id: UUID
+    title: str
+
+
 class DetailedTopic(ListTopic):
-    tests: list[ListTest]
+    pass
 
 
 class WriteTopicPayload(BaseModel):

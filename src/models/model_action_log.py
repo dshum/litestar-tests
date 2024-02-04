@@ -10,6 +10,8 @@ from sqlalchemy import String, Text, ForeignKey
 from sqlalchemy.ext.asyncio import AsyncSession, async_scoped_session
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
+from utils.sqlalchemy_encoding import SQLAlchemyEncoder
+
 if TYPE_CHECKING:
     from models import User
 
@@ -52,15 +54,16 @@ class ModelActionLogService(SQLAlchemyAsyncRepositoryService[ModelActionLog]):
 
     async def log(
             self,
-            model: ModelT | dict[str, Any],
+            model: ModelT | dict[str, Any] | None,
             object_id: UUID | None,
             action: ActionType
     ):
+        json = await self.request.json()
         log = ModelActionLog(
             model_name=str(model.__class__.__name__),
             object_id=object_id,
             action=action,
-            data=json.dumps({}),
+            data=str(json),
             user=self.request.user,
         )
         await self.create(log)

@@ -10,6 +10,7 @@ from sqlalchemy.ext.asyncio import AsyncSession, async_scoped_session
 
 from models.model_action_log import ModelActionLogService, ActionType
 
+
 SchemaT = TypeVar("SchemaT", bound=BaseModel)
 
 
@@ -39,10 +40,19 @@ class SQLAlchemyAsyncRepositoryService(_SQLAlchemyAsyncRepositoryService[ModelT]
             offset=limit_offset.offset,
         )
 
-    async def update_and_log(
+    async def update(
             self,
             data: ModelT | dict[str, Any],
             item_id: Any | None = None,
+            **kwargs: Any
     ) -> ModelT:
         await self.log_service.log(data, item_id, ActionType.UPDATE)
-        return await super().update(data, item_id, auto_commit=True)
+        return await super().update(data, item_id, **kwargs)
+
+    async def delete(
+            self,
+            item_id: Any | None = None,
+            **kwargs: Any
+    ) -> ModelT:
+        await self.log_service.log(None, item_id, ActionType.DELETE)
+        return await super().delete(item_id, **kwargs)

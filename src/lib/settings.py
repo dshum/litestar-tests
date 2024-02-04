@@ -40,7 +40,7 @@ class DatabaseSettings(BaseSettings):
         case_sensitive = True
 
     URL: str
-    ECHO: bool = True
+    ECHO: bool = False
 
 
 class SentrySettings(BaseSettings):

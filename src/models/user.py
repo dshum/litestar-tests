@@ -1,15 +1,18 @@
 from enum import Enum
+from typing import List, TYPE_CHECKING
 from uuid import UUID
 
 import bcrypt
 from advanced_alchemy import SQLAlchemyAsyncRepository
 from advanced_alchemy.base import UUIDAuditBase
-from pydantic import SecretStr
 from sqlalchemy import String, select
 from sqlalchemy.ext.hybrid import hybrid_property
-from sqlalchemy.orm import Mapped, mapped_column
+from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from lib.service import SQLAlchemyAsyncRepositoryService
+
+if TYPE_CHECKING:
+    from models import UserTest
 
 
 class UserRole(str, Enum):
@@ -26,6 +29,16 @@ class User(UUIDAuditBase):
     last_name: Mapped[str] = mapped_column(String(255))
     is_active: Mapped[bool] = mapped_column(default=True)
     role: Mapped[UserRole] = mapped_column(default=UserRole.STUDENT)
+    tests: Mapped[List["UserTest"]] = relationship(
+        foreign_keys="UserTest.user_id",
+        back_populates="user",
+        lazy="noload",
+    )
+    assigned_tests: Mapped[List["UserTest"]] = relationship(
+        foreign_keys="UserTest.creator_user_id",
+        back_populates="creator_user",
+        lazy="noload",
+    )
 
     @hybrid_property
     def password(self) -> str:

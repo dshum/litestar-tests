@@ -59,7 +59,7 @@ class UserController(Controller):
             )
     ) -> DetailedUser:
         data = data.model_dump()
-        user = await user_service.update_and_log(User(**data), user_id)
+        user = await user_service.update(User(**data), user_id, auto_commit=True)
         return DetailedUser.model_validate(user)
 
     @delete(path="/{user_id:uuid}")
