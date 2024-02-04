@@ -7,6 +7,7 @@ from litestar.repository.filters import LimitOffset, OrderBy
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from models.model_action_log import ModelActionLogService
+from models.request_log import RequestLogService
 from models.test import TestService
 from models.topic import TopicService
 from models.user import UserRepository, UserService
@@ -28,6 +29,10 @@ async def provide_order_by(
 
 async def provide_log_service(request: Request, db_session: AsyncSession) -> ModelActionLogService:
     return ModelActionLogService(session=db_session, request=request)
+
+
+async def provide_request_log_service(request: Request, db_session: AsyncSession) -> RequestLogService:
+    return RequestLogService(session=db_session, request=request)
 
 
 async def provide_user_service(db_session: AsyncSession, log_service: ModelActionLogService) -> UserService:
