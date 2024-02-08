@@ -5,11 +5,12 @@ from uuid import UUID
 import bcrypt
 from advanced_alchemy import SQLAlchemyAsyncRepository
 from advanced_alchemy.base import UUIDAuditBase
+from pydantic import TypeAdapter
 from sqlalchemy import String, select
 from sqlalchemy.ext.hybrid import hybrid_property
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
-from lib.service import SQLAlchemyAsyncRepositoryService
+from lib.service import SQLAlchemyAsyncRepositoryLoggedService
 
 if TYPE_CHECKING:
     from models import UserTest
@@ -71,7 +72,7 @@ class UserRepository(SQLAlchemyAsyncRepository[User]):
     model_type = User
 
 
-class UserService(SQLAlchemyAsyncRepositoryService[User]):
+class UserService(SQLAlchemyAsyncRepositoryLoggedService[User]):
     repository_type = UserRepository
 
     async def check_unique_email(self, email: str, user_id: UUID) -> bool:

@@ -7,7 +7,7 @@ from litestar.repository import FilterTypes
 from sqlalchemy import String, ForeignKey, select
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
-from lib.service import SQLAlchemyAsyncRepositoryService
+from lib.service import SQLAlchemyAsyncRepositoryLoggedService
 from models.topic import Topic
 from models.user_test import UserTest
 
@@ -36,9 +36,6 @@ class Test(UUIDAuditBase):
         lazy="noload",
     )
 
-    def __repr__(self) -> str:
-        return f"#{self.id} {self.title} {self.topic}"
-
 
 class TestRepository(SQLAlchemyAsyncRepository[Test]):
     model_type = Test
@@ -51,14 +48,25 @@ class TestRepository(SQLAlchemyAsyncRepository[Test]):
     ) -> tuple[list[Test], int]:
         statement = (
             select(Test)
-            .join(UserTest, onclause=Test.id == UserTest.test_id, isouter=False)
+            .join(UserTest)
             .where(UserTest.user_id == user_id)
-            .execution_options(populate_existing=True)
         )
         return await self.list_and_count(*filters, statement=statement)
 
+    async def get_user_test(
+            self,
+            id: UUID,
+            user_id: UUID,
+    ) -> Test:
+        statement = (
+            select(Test)
+            .join(UserTest)
+            .where(UserTest.user_id == user_id)
+        )
+        return await self.get_one(id=id, statement=statement)
 
-class TestService(SQLAlchemyAsyncRepositoryService[Test]):
+
+class TestService(SQLAlchemyAsyncRepositoryLoggedService[Test]):
     repository_type = TestRepository
 
     async def get_user_tests(
@@ -68,3 +76,10 @@ class TestService(SQLAlchemyAsyncRepositoryService[Test]):
             **kwargs: Any,
     ) -> tuple[list[Test], int]:
         return await self.repository.get_user_tests(*filters, user_id=user_id, **kwargs)
+
+    async def get_user_test(
+            self,
+            id: UUID,
+            user_id: UUID,
+    ) -> Test:
+        return await self.repository.get_user_test(id=id, user_id=user_id)

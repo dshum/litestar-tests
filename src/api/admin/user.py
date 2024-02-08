@@ -1,15 +1,20 @@
 from uuid import UUID
 
+from advanced_alchemy.extensions.litestar import SQLAlchemyDTO
 from advanced_alchemy.filters import LimitOffset, OrderBy
-from litestar import Controller, get, post, put, delete, Request
+from litestar import Controller, get, post, put, delete
 from litestar.di import Provide
+from litestar.dto import DTOConfig
 from litestar.pagination import OffsetPagination
 from litestar.params import Parameter
-from pydantic import TypeAdapter
 
-from api.dependencies import provide_user_service, provide_user_service
+from api.dependencies import provide_user_service
 from models.user import UserService, User
-from schemas.user import ListUser, DetailedUser, WriteUserPayload
+from schemas.user import WriteUserPayload
+
+
+class UserDTO(SQLAlchemyDTO[User]):
+    config = DTOConfig(exclude={"password", "updated_at", "tests", "assigned_tests"})
 
 
 class UserController(Controller):
@@ -17,15 +22,15 @@ class UserController(Controller):
     dependencies = {
         "user_service": Provide(provide_user_service),
     }
+    return_dto = UserDTO
 
     @post(path="/")
     async def create_user(
             self,
             user_service: UserService,
             data: WriteUserPayload,
-    ) -> DetailedUser:
-        new_user = await user_service.create(data.model_dump(), auto_commit=True)
-        return DetailedUser.model_validate(new_user)
+    ) -> User:
+        return await user_service.create(data.model_dump(), auto_commit=True)
 
     @get(path="/")
     async def list_users(
@@ -33,9 +38,9 @@ class UserController(Controller):
             user_service: UserService,
             limit_offset: LimitOffset,
             order_by: OrderBy,
-    ) -> OffsetPagination[ListUser]:
+    ) -> OffsetPagination[User]:
         users, count = await user_service.list_and_count(limit_offset, order_by)
-        return await user_service.offset_pagination(users, count, limit_offset, ListUser)
+        return await user_service.offset_pagination(users, count, limit_offset)
 
     @get(path="/{user_id:uuid}")
     async def get_user(
@@ -44,9 +49,9 @@ class UserController(Controller):
             user_id: UUID = Parameter(
                 title="User ID",
                 description="The user to retrieve",
-            )) -> DetailedUser:
-        user = await user_service.get(user_id)
-        return DetailedUser.model_validate(user)
+            )
+    ) -> User:
+        return await user_service.get(user_id)
 
     @put(path="/{user_id:uuid}")
     async def update_user(
@@ -57,12 +62,11 @@ class UserController(Controller):
                 title="User ID",
                 description="The user to update",
             )
-    ) -> DetailedUser:
+    ) -> User:
         data = data.model_dump()
-        user = await user_service.update(User(**data), user_id, auto_commit=True)
-        return DetailedUser.model_validate(user)
+        return await user_service.update(User(**data), user_id, auto_commit=True)
 
-    @delete(path="/{user_id:uuid}")
+    @delete(path="/{user_id:uuid}", return_dto=None)
     async def delete_user(
             self,
             user_service: UserService,

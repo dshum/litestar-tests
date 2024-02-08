@@ -1,15 +1,19 @@
 from uuid import UUID
 
+from advanced_alchemy.extensions.litestar import SQLAlchemyDTO
 from advanced_alchemy.filters import LimitOffset, OrderBy
-from litestar import Controller, get, post, put, delete, Request
+from litestar import Controller, get
 from litestar.di import Provide
+from litestar.dto import DTOConfig
 from litestar.pagination import OffsetPagination
 from litestar.params import Parameter
-from pydantic import TypeAdapter
 
 from api.dependencies import provide_topic_service
 from models.topic import TopicService, Topic
-from schemas.topic import ListTopic, WriteTopicPayload, DetailedTopic
+
+
+class TopicDTO(SQLAlchemyDTO[Topic]):
+    config = DTOConfig(exclude={"updated_at", "tests"})
 
 
 class TopicController(Controller):
@@ -17,6 +21,7 @@ class TopicController(Controller):
     dependencies = {
         "topic_service": Provide(provide_topic_service),
     }
+    return_dto = TopicDTO
 
     @get(path="/")
     async def list_topics(
@@ -24,9 +29,9 @@ class TopicController(Controller):
             topic_service: TopicService,
             limit_offset: LimitOffset,
             order_by: OrderBy,
-    ) -> OffsetPagination[ListTopic]:
+    ) -> OffsetPagination[Topic]:
         topics, count = await topic_service.list_and_count(limit_offset, order_by)
-        return await topic_service.offset_pagination(topics, count, limit_offset, ListTopic)
+        return await topic_service.offset_pagination(topics, count, limit_offset)
 
     @get(path="/{topic_id:uuid}")
     async def get_topic(
@@ -35,6 +40,6 @@ class TopicController(Controller):
             topic_id: UUID = Parameter(
                 title="Topic ID",
                 description="The topic to retrieve",
-            )) -> DetailedTopic:
-        topic = await topic_service.get(topic_id)
-        return DetailedTopic.model_validate(topic)
+            )
+    ) -> Topic:
+        return await topic_service.get(topic_id)

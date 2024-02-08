@@ -1,25 +1,6 @@
-from datetime import datetime
-from typing import List
-from uuid import UUID
-
 from pydantic import EmailStr, field_validator
 
-from models.user import UserRole
 from schemas import BaseModel
-from schemas.test import ListTest
-
-
-class ListUser(BaseModel):
-    id: UUID
-    email: EmailStr
-    first_name: str
-    last_name: str
-    role: UserRole
-    created_at: datetime
-
-
-class DetailedUser(ListUser):
-    pass
 
 
 class WriteUserPayload(BaseModel):

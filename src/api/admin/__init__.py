@@ -12,5 +12,5 @@ admin_router = Router(
         TopicController,
         TestController,
     ],
-    guards=[admin_guard]
+    guards=[admin_guard],
 )

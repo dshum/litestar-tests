@@ -1,4 +1,4 @@
-from pydantic import EmailStr, SecretStr, model_validator
+from pydantic import EmailStr, SecretStr
 
 from schemas import BaseModel
 
@@ -9,12 +9,6 @@ class LoginUserPayload(BaseModel):
 
 
 class UpdatePasswordPayload(BaseModel):
-    current_password: str
-    password: str
-    confirm_password: str
-
-    @model_validator(mode="after")
-    def validate_passwords(self) -> "UpdatePasswordPayload":
-        if self.password != self.confirm_password:
-            raise ValueError("passwords should match")
-        return self
+    current_password: SecretStr
+    password: SecretStr
+    confirm_password: SecretStr

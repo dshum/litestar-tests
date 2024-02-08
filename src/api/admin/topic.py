@@ -1,15 +1,20 @@
 from uuid import UUID
 
+from advanced_alchemy.extensions.litestar import SQLAlchemyDTO
 from advanced_alchemy.filters import LimitOffset, OrderBy
-from litestar import Controller, get, post, put, delete, Request
+from litestar import Controller, get, post, put, delete
 from litestar.di import Provide
+from litestar.dto import DTOConfig
 from litestar.pagination import OffsetPagination
 from litestar.params import Parameter
-from pydantic import TypeAdapter
 
 from api.dependencies import provide_topic_service
 from models.topic import TopicService, Topic
-from schemas.topic import ListTopic, WriteTopicPayload, DetailedTopic
+from schemas.topic import WriteTopicPayload
+
+
+class TopicDTO(SQLAlchemyDTO[Topic]):
+    config = DTOConfig(exclude={"updated_at", "tests"})
 
 
 class TopicController(Controller):
@@ -17,15 +22,15 @@ class TopicController(Controller):
     dependencies = {
         "topic_service": Provide(provide_topic_service),
     }
+    return_dto = TopicDTO
 
     @post(path="/")
     async def create_topic(
             self,
             topic_service: TopicService,
             data: WriteTopicPayload,
-    ) -> DetailedTopic:
-        new_topic = await topic_service.create(data.model_dump(), auto_commit=True)
-        return DetailedTopic.model_validate(new_topic)
+    ) -> Topic:
+        return await topic_service.create(data.model_dump(), auto_commit=True)
 
     @get(path="/")
     async def list_topics(
@@ -33,9 +38,9 @@ class TopicController(Controller):
             topic_service: TopicService,
             limit_offset: LimitOffset,
             order_by: OrderBy,
-    ) -> OffsetPagination[ListTopic]:
+    ) -> OffsetPagination[Topic]:
         topics, count = await topic_service.list_and_count(limit_offset, order_by)
-        return await topic_service.offset_pagination(topics, count, limit_offset, ListTopic)
+        return await topic_service.offset_pagination(topics, count, limit_offset)
 
     @get(path="/{topic_id:uuid}")
     async def get_topic(
@@ -44,9 +49,9 @@ class TopicController(Controller):
             topic_id: UUID = Parameter(
                 title="Topic ID",
                 description="The topic to retrieve",
-            )) -> DetailedTopic:
-        topic = await topic_service.get(topic_id)
-        return DetailedTopic.model_validate(topic)
+            )
+    ) -> Topic:
+        return await topic_service.get(topic_id)
 
     @put(path="/{topic_id:uuid}")
     async def update_topic(
@@ -57,12 +62,11 @@ class TopicController(Controller):
                 title="Topic ID",
                 description="The topic to update",
             )
-    ) -> DetailedTopic:
+    ) -> Topic:
         data = data.model_dump()
-        topic = await topic_service.update(Topic(**data), topic_id)
-        return DetailedTopic.model_validate(topic)
+        return await topic_service.update(Topic(**data), topic_id)
 
-    @delete(path="/{topic_id:uuid}")
+    @delete(path="/{topic_id:uuid}", return_dto=None)
     async def delete_user(
             self,
             topic_service: TopicService,

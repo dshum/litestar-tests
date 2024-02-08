@@ -1,20 +1,16 @@
 from collections.abc import Sequence
-from typing import TypeVar, Type, Any
+from typing import Any
 
 from advanced_alchemy import ModelT
 from advanced_alchemy.filters import LimitOffset
 from advanced_alchemy.service import SQLAlchemyAsyncRepositoryService as _SQLAlchemyAsyncRepositoryService
 from litestar.pagination import OffsetPagination
-from pydantic import TypeAdapter, BaseModel
 from sqlalchemy.ext.asyncio import AsyncSession, async_scoped_session
 
 from models.model_action_log import ModelActionLogService, ActionType
 
 
-SchemaT = TypeVar("SchemaT", bound=BaseModel)
-
-
-class SQLAlchemyAsyncRepositoryService(_SQLAlchemyAsyncRepositoryService[ModelT]):
+class SQLAlchemyAsyncRepositoryLoggedService(_SQLAlchemyAsyncRepositoryService[ModelT]):
     def __init__(
             self,
             session: AsyncSession | async_scoped_session[AsyncSession],
@@ -30,11 +26,9 @@ class SQLAlchemyAsyncRepositoryService(_SQLAlchemyAsyncRepositoryService[ModelT]
             data: Sequence[ModelT],
             total: int,
             limit_offset: LimitOffset,
-            return_schema: Type[SchemaT],
-    ):
-        type_adapter = TypeAdapter(list[return_schema])
-        return OffsetPagination[return_schema](
-            items=type_adapter.validate_python(data),
+    ) -> OffsetPagination[ModelT]:
+        return OffsetPagination[ModelT](
+            items=data,
             total=total,
             limit=limit_offset.limit,
             offset=limit_offset.offset,

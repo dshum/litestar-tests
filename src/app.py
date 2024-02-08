@@ -1,5 +1,6 @@
 from advanced_alchemy import NotFoundError, ConflictError
 from litestar import Litestar
+from litestar.config.app import ExperimentalFeatures
 from litestar.contrib.sqlalchemy.plugins import SQLAlchemyPlugin
 from litestar.di import Provide
 from litestar.exceptions import ValidationException, NotAuthorizedException, HTTPException, NotFoundException
@@ -52,4 +53,5 @@ app = Litestar(
     },
     logging_config=logging_config,
     debug=settings.app.DEBUG,
+    experimental_features=[ExperimentalFeatures.DTO_CODEGEN],
 )
