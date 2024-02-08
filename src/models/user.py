@@ -75,7 +75,9 @@ class UserRepository(SQLAlchemyAsyncRepository[User]):
 class UserService(SQLAlchemyAsyncRepositoryLoggedService[User]):
     repository_type = UserRepository
 
-    async def check_unique_email(self, email: str, user_id: UUID) -> bool:
-        statement = select(User).where(User.email == email, User.id != user_id)
+    async def check_unique_email(self, email: str, user_id: UUID | None = None) -> bool:
+        statement = select(User).where(User.email == email)
+        if user_id:
+            statement = statement.where(User.id != user_id)
         user_count = await self.count(statement=statement)
         return user_count < 1
