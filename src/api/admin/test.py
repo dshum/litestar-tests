@@ -67,7 +67,7 @@ class TestController(Controller):
         return await test_service.update(Test(**data), test_id)
 
     @delete(path="/{test_id:uuid}", return_dto=None)
-    async def delete_user(
+    async def delete_test(
             self,
             test_service: TestService,
             test_id: UUID = Parameter(

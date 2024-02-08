@@ -21,5 +21,9 @@ readme = "README.md"
 license = {text = "MIT"}
 
 
+[tool.pdm.scripts]
+debug = "litestar --app-dir src debug"
+
+
 [tool.pdm]
 distribution = false

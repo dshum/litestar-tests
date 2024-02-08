@@ -4,13 +4,13 @@ from litestar.config.app import ExperimentalFeatures
 from litestar.contrib.sqlalchemy.plugins import SQLAlchemyPlugin
 from litestar.di import Provide
 from litestar.exceptions import ValidationException, NotAuthorizedException, HTTPException, NotFoundException
-from litestar.middleware.logging import LoggingMiddlewareConfig
 from litestar.status_codes import HTTP_500_INTERNAL_SERVER_ERROR
 
 from api import site_router
 from api.admin import admin_router
 from api.dependencies import provide_limit_offset_pagination, provide_order_by, provide_log_service, \
     provide_request_log_service
+from commands.demo import DemoCLIPlugin
 from lib import sentry, database, settings
 from lib.database import db_config
 from lib.exceptions import (
@@ -23,8 +23,6 @@ from lib.jwt_auth import jwt_auth
 from lib.logs import logging_config
 from middleware.request_log import log_request_handler, after_request, after_response
 
-logging_middleware_config = LoggingMiddlewareConfig()
-
 app = Litestar(
     route_handlers=[site_router, admin_router],
     before_request=log_request_handler,
@@ -32,6 +30,7 @@ app = Litestar(
     after_response=after_response,
     plugins=[
         SQLAlchemyPlugin(db_config),
+        DemoCLIPlugin(),
     ],
     on_startup=[sentry.on_startup, database.on_startup],
     on_app_init=[jwt_auth.on_app_init],
