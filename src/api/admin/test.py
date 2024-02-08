@@ -64,7 +64,7 @@ class TestController(Controller):
             )
     ) -> Test:
         data = data.model_dump()
-        return await test_service.update(Test(**data), test_id)
+        return await test_service.update(Test(**data), test_id, auto_commit=True)
 
     @delete(path="/{test_id:uuid}", return_dto=None)
     async def delete_test(

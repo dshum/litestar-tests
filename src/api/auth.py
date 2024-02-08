@@ -86,7 +86,7 @@ class AuthController(Controller):
                 "key": "email"
             }])
         data = data.model_dump()
-        return await user_service.update(User(**data), request.user.id)
+        return await user_service.update(User(**data), request.user.id, auto_commit=True)
 
     @put(path="/password")
     async def update_password(
@@ -111,5 +111,6 @@ class AuthController(Controller):
 
         return await user_service.update(
             User(password=password),
-            request.user.id
+            request.user.id,
+            auto_commit=True
         )

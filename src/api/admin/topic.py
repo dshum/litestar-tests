@@ -64,7 +64,7 @@ class TopicController(Controller):
             )
     ) -> Topic:
         data = data.model_dump()
-        return await topic_service.update(Topic(**data), topic_id)
+        return await topic_service.update(Topic(**data), topic_id, auto_commit=True)
 
     @delete(path="/{topic_id:uuid}", return_dto=None)
     async def delete_user(
