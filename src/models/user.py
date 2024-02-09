@@ -1,9 +1,9 @@
 from enum import Enum
-from typing import List, TYPE_CHECKING
+from typing import List, TYPE_CHECKING, Any
 from uuid import UUID
 
 import bcrypt
-from advanced_alchemy import SQLAlchemyAsyncRepository
+from advanced_alchemy import SQLAlchemyAsyncRepository, ModelT
 from advanced_alchemy.base import UUIDAuditBase
 from pydantic import TypeAdapter
 from sqlalchemy import String, select
@@ -11,6 +11,7 @@ from sqlalchemy.ext.hybrid import hybrid_property
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from lib.service import SQLAlchemyAsyncRepositoryLoggedService
+from mails.user_registered import send_user_registered_email
 
 if TYPE_CHECKING:
     from models import UserTest
@@ -81,3 +82,8 @@ class UserService(SQLAlchemyAsyncRepositoryLoggedService[User]):
             statement = statement.where(User.id != user_id)
         user_count = await self.count(statement=statement)
         return user_count < 1
+
+    async def register(self, data: ModelT | dict[str, Any], **kwargs: Any) -> ModelT:
+        user = await super().create(data, auto_commit=True)
+        await send_user_registered_email(user)
+        return user

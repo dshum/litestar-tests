@@ -21,35 +21,43 @@ from lib.exceptions import (
 )
 from lib.jwt_auth import jwt_auth
 from lib.logs import logging_config
+from lib.template import template_config
 from middleware.request_log import log_request_handler, after_request, after_response
+
+plugins = [
+    SQLAlchemyPlugin(db_config),
+    DemoCLIPlugin(),
+]
+
+dependencies = {
+    "log_service": Provide(provide_log_service),
+    "request_log_service": Provide(provide_request_log_service),
+    "limit_offset": Provide(provide_limit_offset_pagination),
+    "order_by": Provide(provide_order_by)
+}
+
+exception_handlers = {
+    ValidationException: default_exception_handler,
+    NotAuthorizedException: default_exception_handler,
+    NotFoundException: not_found_exception_handler,
+    NotFoundError: not_found_exception_handler,
+    ConflictError: conflict_exception_handler,
+    ValueError: default_exception_handler,
+    HTTP_500_INTERNAL_SERVER_ERROR: app_exception_handler,
+    HTTPException: app_exception_handler,
+}
 
 app = Litestar(
     route_handlers=[site_router, admin_router],
     before_request=log_request_handler,
     after_request=after_request,
     after_response=after_response,
-    plugins=[
-        SQLAlchemyPlugin(db_config),
-        DemoCLIPlugin(),
-    ],
+    plugins=plugins,
+    template_config=template_config,
     on_startup=[sentry.on_startup, database.on_startup],
     on_app_init=[jwt_auth.on_app_init],
-    dependencies={
-        "log_service": Provide(provide_log_service),
-        "request_log_service": Provide(provide_request_log_service),
-        "limit_offset": Provide(provide_limit_offset_pagination),
-        "order_by": Provide(provide_order_by)
-    },
-    exception_handlers={
-        ValidationException: default_exception_handler,
-        NotAuthorizedException: default_exception_handler,
-        NotFoundException: not_found_exception_handler,
-        NotFoundError: not_found_exception_handler,
-        ConflictError: conflict_exception_handler,
-        ValueError: default_exception_handler,
-        HTTP_500_INTERNAL_SERVER_ERROR: app_exception_handler,
-        HTTPException: app_exception_handler,
-    },
+    dependencies=dependencies,
+    exception_handlers=exception_handlers,
     logging_config=logging_config,
     debug=settings.app.DEBUG,
     experimental_features=[ExperimentalFeatures.DTO_CODEGEN],

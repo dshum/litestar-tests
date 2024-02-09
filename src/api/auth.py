@@ -6,6 +6,7 @@ from litestar.exceptions import ValidationException, NotAuthorizedException
 
 from api.dependencies import provide_user_service
 from lib.jwt_auth import jwt_auth
+from mails.user_registered import send_user_registered_email
 from models import User
 from models.user import UserService
 from schemas.auth import LoginUserPayload, UpdatePasswordPayload, RegisterUserPayload
@@ -43,7 +44,7 @@ class AuthController(Controller):
         password = data.password.get_secret_value()
         data = data.model_dump(exclude={"confirm_password"})
         data.update({"password": password})
-        user = await user_service.create(User(**data), auto_commit=True)
+        user = await user_service.register(User(**data))
 
         return jwt_auth.login(
             identifier=str(user.id),

@@ -1,0 +1,9 @@
+{% extends "mails/layouts/default.html" %}
+
+{% block content %}
+<h1>User has been registered!</h1>
+<p>
+  Name: {{ user.name }}<br>
+  Email: {{ user.email }}
+</p>
+{% endblock %}

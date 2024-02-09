@@ -8,6 +8,7 @@ __all__ = [
     "jwt",
     "db",
     "sentry",
+    "mail",
 ]
 
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -53,7 +54,20 @@ class SentrySettings(BaseSettings):
     TRACES_SAMPLE_RATE: float = 0.0
 
 
+class MailSettings(BaseSettings):
+    class Config:
+        env_prefix = "MAIL_"
+        case_sensitive = True
+
+    HOST: str
+    PORT: int = 465
+    USERNAME: str
+    PASSWORD: str
+    ENCRYPTION: str = "SSL"
+
+
 app = AppSettings.model_validate({})
 jwt = JWTSettings.model_validate({})
 db = DatabaseSettings.model_validate({})
 sentry = SentrySettings.model_validate({})
+mail = MailSettings.model_validate({})
