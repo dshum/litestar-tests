@@ -5,13 +5,12 @@ from uuid import UUID
 import bcrypt
 from advanced_alchemy import SQLAlchemyAsyncRepository, ModelT
 from advanced_alchemy.base import UUIDAuditBase
-from pydantic import TypeAdapter
 from sqlalchemy import String, select
 from sqlalchemy.ext.hybrid import hybrid_property
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from lib.service import SQLAlchemyAsyncRepositoryLoggedService
-from mails.user_registered import send_user_registered_email
+from mails.user_registered import UserRegisteredMail
 
 if TYPE_CHECKING:
     from models import UserTest
@@ -85,5 +84,5 @@ class UserService(SQLAlchemyAsyncRepositoryLoggedService[User]):
 
     async def register(self, data: ModelT | dict[str, Any], **kwargs: Any) -> ModelT:
         user = await super().create(data, auto_commit=True)
-        await send_user_registered_email(user)
+        await UserRegisteredMail(user=user).send()
         return user

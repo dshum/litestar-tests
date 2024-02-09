@@ -12,6 +12,7 @@ services:
       - ./src:/app/src
     depends_on:
       - db
+      - redis
     ports:
       - "${WEB_EXTERNAL_PORT:-8000}:8000"
     restart: unless-stopped
@@ -33,5 +34,16 @@ services:
     restart: unless-stopped
     tty: true
 
+  redis:
+    container_name: tests-redis
+    image: redis:latest
+    volumes:
+      - cache:/data
+    ports:
+      - "${REDIS_EXTERNAL_PORT:-6379}:6379"
+    restart: unless-stopped
+    tty: true
+
 volumes:
   postgres_data: { }
+  cache: { }

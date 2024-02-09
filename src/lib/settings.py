@@ -59,11 +59,13 @@ class MailSettings(BaseSettings):
         env_prefix = "MAIL_"
         case_sensitive = True
 
+    FROM: str
     HOST: str
     PORT: int = 465
     USERNAME: str
     PASSWORD: str
-    ENCRYPTION: str = "SSL"
+    USE_TLS: bool = False
+    TIMEOUT: int = 10
 
 
 app = AppSettings.model_validate({})
