@@ -4,12 +4,9 @@ from litestar.di import Provide
 from litestar.dto import DTOConfig
 from litestar.exceptions import ValidationException, NotAuthorizedException, ClientException
 from litestar.params import Parameter
-from litestar.security.jwt import Token
 
 from api.dependencies import provide_user_service
-from lib import settings
-from lib.jwt_auth import jwt_auth
-from lib.user_manager import UserManager
+from lib.jwt import jwt_auth, JWT
 from models import User
 from models.user import UserService
 from schemas.auth import LoginUserPayload, UpdatePasswordPayload, RegisterUserPayload
@@ -29,6 +26,7 @@ class AuthController(Controller):
     @post("/register")
     async def register(
             self,
+            request: Request,
             user_service: UserService,
             data: RegisterUserPayload,
     ) -> Response[User]:
@@ -47,7 +45,9 @@ class AuthController(Controller):
         password = data.password.get_secret_value()
         data = data.model_dump(exclude={"confirm_password"})
         data.update({"password": password})
-        user = await user_service.register(User(**data))
+        user = await user_service.create(User(**data), auto_commit=True)
+
+        request.app.emit("user_registered", user=user)
 
         return jwt_auth.login(
             identifier=str(user.id),
@@ -64,7 +64,7 @@ class AuthController(Controller):
                 description="A token to verify the user",
             ),
     ) -> Response[User]:
-        token = UserManager.decode_token(token)
+        token = JWT.decode_token(token)
         email = token.extras.get("email")
         user = await user_service.get_one_or_none(email=email)
         if not user:

@@ -11,6 +11,7 @@ from api.admin import admin_router
 from api.dependencies import provide_limit_offset_pagination, provide_order_by, provide_log_service, \
     provide_request_log_service
 from commands.demo import DemoCLIPlugin
+from events.listeners import on_user_registered
 from lib import sentry, database, settings
 from lib.database import db_config
 from lib.exceptions import (
@@ -19,7 +20,7 @@ from lib.exceptions import (
     not_found_exception_handler,
     conflict_exception_handler,
 )
-from lib.jwt_auth import jwt_auth
+from lib.jwt import jwt_auth
 from lib.logs import logging_config
 from lib.template import template_config
 from middleware.request_log import log_request_handler, after_request, after_response
@@ -27,6 +28,10 @@ from middleware.request_log import log_request_handler, after_request, after_res
 plugins = [
     SQLAlchemyPlugin(db_config),
     DemoCLIPlugin(),
+]
+
+listeners = [
+    on_user_registered,
 ]
 
 dependencies = {
@@ -45,6 +50,11 @@ exception_handlers = {
     ValueError: default_exception_handler,
     HTTP_500_INTERNAL_SERVER_ERROR: app_exception_handler,
     HTTPException: app_exception_handler,
+} if not settings.app.DEBUG else {
+    ValidationException: default_exception_handler,
+    NotAuthorizedException: default_exception_handler,
+    NotFoundException: not_found_exception_handler,
+    NotFoundError: not_found_exception_handler,
 }
 
 app = Litestar(
@@ -56,6 +66,7 @@ app = Litestar(
     template_config=template_config,
     on_startup=[sentry.on_startup, database.on_startup],
     on_app_init=[jwt_auth.on_app_init],
+    listeners=listeners,
     dependencies=dependencies,
     exception_handlers=exception_handlers,
     logging_config=logging_config,

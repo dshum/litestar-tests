@@ -1,20 +1,15 @@
-from datetime import timedelta, datetime
 from enum import Enum
-from typing import List, TYPE_CHECKING, Any
+from typing import List, TYPE_CHECKING
 from uuid import UUID
 
 import bcrypt
-from advanced_alchemy import SQLAlchemyAsyncRepository, ModelT
+from advanced_alchemy import SQLAlchemyAsyncRepository
 from advanced_alchemy.base import UUIDAuditBase
-from litestar.security.jwt import Token
 from sqlalchemy import String, select
 from sqlalchemy.ext.hybrid import hybrid_property
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
-from lib import settings
-from lib.jwt_auth import jwt_auth
 from lib.service import SQLAlchemyAsyncRepositoryLoggedService
-from mails.user_registered import UserRegisteredMail
 
 if TYPE_CHECKING:
     from models import UserTest
@@ -86,8 +81,3 @@ class UserService(SQLAlchemyAsyncRepositoryLoggedService[User]):
             statement = statement.where(User.id != user_id)
         user_count = await self.count(statement=statement)
         return user_count < 1
-
-    async def register(self, data: ModelT | dict[str, Any], **kwargs: Any) -> ModelT:
-        user = await super().create(data, auto_commit=True)
-        await UserRegisteredMail(user=user).send()
-        return user

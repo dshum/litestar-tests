@@ -3,6 +3,8 @@ from litestar import Response, MediaType, Request
 from litestar.exceptions import ValidationException, HTTPException, NotAuthorizedException
 from sentry_sdk import capture_exception
 
+from lib import settings
+
 
 def default_exception_handler(request: Request, exc: HTTPException) -> Response:
     if hasattr(exc, "detail"):
@@ -50,5 +52,4 @@ def conflict_exception_handler(request: Request, exc: ConflictError) -> Response
 
 def app_exception_handler(request: Request, exc: HTTPException) -> Response:
     capture_exception(exc)
-
     return default_exception_handler(request, exc)

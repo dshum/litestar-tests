@@ -26,6 +26,8 @@ class Mailable:
         self.message.set_content(content, subtype="html")
 
     async def send(self):
+        print("Mailable.send", self.message["To"])
+
         return await aiosmtplib.send(
             self.message,
             hostname=settings.mail.HOST,
