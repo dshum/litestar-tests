@@ -2,9 +2,12 @@ from advanced_alchemy.extensions.litestar import SQLAlchemyDTO
 from litestar import post, Controller, get, Request, put, Response
 from litestar.di import Provide
 from litestar.dto import DTOConfig
-from litestar.exceptions import ValidationException, NotAuthorizedException
+from litestar.exceptions import ValidationException, NotAuthorizedException, ClientException
+from litestar.params import Parameter
+from litestar.security.jwt import Token
 
 from api.dependencies import provide_user_service
+from lib import settings
 from lib.jwt_auth import jwt_auth
 from models import User
 from models.user import UserService
@@ -45,6 +48,29 @@ class AuthController(Controller):
         data.update({"password": password})
         user = await user_service.register(User(**data))
 
+        return jwt_auth.login(
+            identifier=str(user.id),
+            token_extras={"email": user.email},
+            response_body=user,
+        )
+
+    @post("/verify/{token:str}")
+    async def verify_user(
+            self,
+            user_service: UserService,
+            token: str = Parameter(
+                title="JWT Token",
+                description="A token to verify the user",
+            ),
+    ) -> Response[User]:
+        token = User.decode_token(token)
+        email = token.extras.get("email")
+        user = await user_service.get_one_or_none(email=email)
+        if not user:
+            raise NotAuthorizedException("User not found")
+        if user.is_verified:
+            raise ClientException("User is already verified")
+        user = await user_service.update(User(is_verified=True), user.id, auto_commit=True)
         return jwt_auth.login(
             identifier=str(user.id),
             token_extras={"email": user.email},

@@ -1,3 +1,4 @@
+from datetime import timedelta, datetime
 from enum import Enum
 from typing import List, TYPE_CHECKING, Any
 from uuid import UUID
@@ -5,10 +6,12 @@ from uuid import UUID
 import bcrypt
 from advanced_alchemy import SQLAlchemyAsyncRepository, ModelT
 from advanced_alchemy.base import UUIDAuditBase
+from litestar.security.jwt import Token
 from sqlalchemy import String, select
 from sqlalchemy.ext.hybrid import hybrid_property
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
+from lib import settings
 from lib.service import SQLAlchemyAsyncRepositoryLoggedService
 from mails.user_registered import UserRegisteredMail
 
@@ -24,11 +27,12 @@ class UserRole(str, Enum):
 class User(UUIDAuditBase):
     __tablename__ = "users"
 
-    email: Mapped[str] = mapped_column(String(255), unique=True, index=True)
+    email: Mapped[str] = mapped_column(String(320), unique=True, index=True)
     _password: Mapped[str] = mapped_column("password_hash", String(255))
     first_name: Mapped[str] = mapped_column(String(255))
     last_name: Mapped[str] = mapped_column(String(255))
     is_active: Mapped[bool] = mapped_column(default=True)
+    is_verified: Mapped[bool] = mapped_column(default=False)
     role: Mapped[UserRole] = mapped_column(default=UserRole.STUDENT)
     tests: Mapped[List["UserTest"]] = relationship(
         foreign_keys="UserTest.user_id",
@@ -66,6 +70,18 @@ class User(UUIDAuditBase):
             password=password.encode(),
             hashed_password=self.password.encode(),
         )
+
+    def get_token(self):
+        token = Token(
+            sub=str(self.id),
+            exp=datetime.now() + timedelta(minutes=settings.jwt.TTL),
+            extras={"email": self.email},
+        )
+        return token.encode(secret=settings.jwt.SECRET, algorithm="HS256")
+
+    @classmethod
+    def decode_token(cls, token: str) -> Token:
+        return Token.decode(token, settings.jwt.SECRET, "HS256")
 
 
 class UserRepository(SQLAlchemyAsyncRepository[User]):

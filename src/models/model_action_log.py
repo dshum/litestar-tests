@@ -29,7 +29,7 @@ class ModelActionLog(UUIDAuditBase):
     object_id: Mapped[UUID | None] = mapped_column()
     action: Mapped[ActionType | None] = mapped_column(default=None)
     data: Mapped[str | None] = mapped_column(Text, default=None)
-    user_id: Mapped[UUID] = mapped_column(ForeignKey("users.id", ondelete="restrict"))
+    user_id: Mapped[UUID | None] = mapped_column(ForeignKey("users.id", ondelete="restrict"))
     user: Mapped["User"] = relationship(
         foreign_keys="ModelActionLog.user_id",
         lazy="noload",
@@ -59,11 +59,12 @@ class ModelActionLogService(SQLAlchemyAsyncRepositoryService[ModelActionLog]):
             action: ActionType
     ):
         json = await self.request.json()
+        user = self.request.user if self.request.scope.get("user") else None
         log = ModelActionLog(
             model_name=str(model.__class__.__name__),
             object_id=object_id,
             action=action,
             data=str(json),
-            user=self.request.user,
+            user=user,
         )
         await self.create(log)

@@ -20,6 +20,8 @@ class AppSettings(BaseSettings):
 
     APP_NAME: str = "Tests"
     SECRET_KEY: str = "fake_secret_key"
+    API_URL: str = "http://localhost"
+    FRONTEND_URL: str = "http://localhost"
     BUILD_NUMBER: str = "0"
     DEBUG: bool = False
     ENVIRONMENT: str = "local"
