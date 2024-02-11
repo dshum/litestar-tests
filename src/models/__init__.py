@@ -11,7 +11,3 @@ from models.question import Question
 from models.model_action_log import ModelActionLog
 from models.request_log import RequestLog
 from models.user_test import UserTest
-
-
-class Base(UUIDBase):
-    pass

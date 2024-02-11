@@ -12,6 +12,7 @@ from sqlalchemy.ext.hybrid import hybrid_property
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from lib import settings
+from lib.jwt_auth import jwt_auth
 from lib.service import SQLAlchemyAsyncRepositoryLoggedService
 from mails.user_registered import UserRegisteredMail
 
@@ -70,18 +71,6 @@ class User(UUIDAuditBase):
             password=password.encode(),
             hashed_password=self.password.encode(),
         )
-
-    def get_token(self):
-        token = Token(
-            sub=str(self.id),
-            exp=datetime.now() + timedelta(minutes=settings.jwt.TTL),
-            extras={"email": self.email},
-        )
-        return token.encode(secret=settings.jwt.SECRET, algorithm="HS256")
-
-    @classmethod
-    def decode_token(cls, token: str) -> Token:
-        return Token.decode(token, settings.jwt.SECRET, "HS256")
 
 
 class UserRepository(SQLAlchemyAsyncRepository[User]):

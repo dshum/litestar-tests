@@ -6,7 +6,11 @@ from sqlalchemy.ext.asyncio import async_sessionmaker
 from sqlalchemy.orm import DeclarativeBase
 
 from lib import settings
-from models import Base
+
+
+class Base(UUIDBase):
+    pass
+
 
 db_config = SQLAlchemyAsyncConfig(
     connection_string=settings.db.URL,

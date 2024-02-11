@@ -9,6 +9,7 @@ from litestar.security.jwt import Token
 from api.dependencies import provide_user_service
 from lib import settings
 from lib.jwt_auth import jwt_auth
+from lib.user_manager import UserManager
 from models import User
 from models.user import UserService
 from schemas.auth import LoginUserPayload, UpdatePasswordPayload, RegisterUserPayload
@@ -63,7 +64,7 @@ class AuthController(Controller):
                 description="A token to verify the user",
             ),
     ) -> Response[User]:
-        token = User.decode_token(token)
+        token = UserManager.decode_token(token)
         email = token.extras.get("email")
         user = await user_service.get_one_or_none(email=email)
         if not user:
