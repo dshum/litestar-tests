@@ -10,5 +10,9 @@ if TYPE_CHECKING:
 
 @listener("user_registered")
 async def on_user_registered(user: "User", **kwargs) -> None:
-    print("on_user_registered", user)
     await UserRegisteredMail(user=user).send()
+
+
+@listener("password_reset")
+async def on_password_reset(user: "User", **kwargs) -> None:
+    await PasswordResetMail(user=user).send()

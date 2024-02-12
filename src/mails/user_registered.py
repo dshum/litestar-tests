@@ -10,8 +10,6 @@ if TYPE_CHECKING:
 
 class UserRegisteredMail(Mailable):
     def __init__(self, user: "User"):
-        print("UserRegisteredMail.__init__", user)
-
         token = JWT.encode_token(user)
         verify_url = f"{settings.app.FRONTEND_URL}/#/verify/{token}"
 

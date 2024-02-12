@@ -11,7 +11,7 @@ from api.admin import admin_router
 from api.dependencies import provide_limit_offset_pagination, provide_order_by, provide_log_service, \
     provide_request_log_service
 from commands.demo import DemoCLIPlugin
-from events.listeners import on_user_registered
+from events.listeners import on_user_registered, on_password_reset
 from lib import sentry, database, settings
 from lib.database import db_config
 from lib.exceptions import (
@@ -32,6 +32,7 @@ plugins = [
 
 listeners = [
     on_user_registered,
+    on_password_reset,
 ]
 
 dependencies = {

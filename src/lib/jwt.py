@@ -23,7 +23,7 @@ jwt_auth = JWTAuth[User](
     retrieve_user_handler=retrieve_user_handler,
     token_secret=settings.jwt.SECRET,
     default_token_expiration=timedelta(minutes=settings.jwt.TTL),
-    exclude=["/register", "/login", "/verify", "/schema"],
+    exclude=["/register", "/login", "/verify", "/password-reset", "/schema"],
 )
 
 

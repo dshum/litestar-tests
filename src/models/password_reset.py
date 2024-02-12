@@ -1,8 +1,11 @@
 import bcrypt
+from advanced_alchemy import SQLAlchemyAsyncRepository
 from advanced_alchemy.base import UUIDAuditBase
 from sqlalchemy import String
 from sqlalchemy.ext.hybrid import hybrid_property
 from sqlalchemy.orm import Mapped, mapped_column
+
+from lib.service import SQLAlchemyAsyncRepositoryLoggedService
 
 
 class PasswordReset(UUIDAuditBase):
@@ -28,3 +31,14 @@ class PasswordReset(UUIDAuditBase):
             password=token.encode(),
             hashed_password=self.token.encode(),
         )
+
+
+class PasswordResetRepository(SQLAlchemyAsyncRepository[PasswordReset]):
+    model_type = PasswordReset
+
+
+# class PasswordResetService(SQLAlchemyAsyncRepositoryLoggedService[PasswordReset]):
+#     repository_type = PasswordResetRepository
+#
+#     async def create(self):
+

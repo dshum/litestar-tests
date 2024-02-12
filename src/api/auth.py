@@ -2,7 +2,7 @@ from advanced_alchemy.extensions.litestar import SQLAlchemyDTO
 from litestar import post, Controller, get, Request, put, Response
 from litestar.di import Provide
 from litestar.dto import DTOConfig
-from litestar.exceptions import ValidationException, NotAuthorizedException, ClientException
+from litestar.exceptions import ValidationException, NotAuthorizedException, ClientException, NotFoundException
 from litestar.params import Parameter
 
 from api.dependencies import provide_user_service
@@ -65,8 +65,7 @@ class AuthController(Controller):
             ),
     ) -> Response[User]:
         token = JWT.decode_token(token)
-        email = token.extras.get("email")
-        user = await user_service.get_one_or_none(email=email)
+        user = await user_service.get_one_or_none(id=token.sub)
         if not user:
             raise NotAuthorizedException("User not found")
         if user.is_verified:
@@ -94,6 +93,23 @@ class AuthController(Controller):
             token_extras={"email": user.email},
             response_body=user,
         )
+
+    @post("/password-reset", return_dto=None)
+    async def password_reset(
+            self,
+            request: Request,
+            user_service: UserService,
+
+            email: str = Parameter(
+                title="User email",
+                description="A email to retrieve the user",
+            ),
+    ) -> None:
+        user = await user_service.get_one_or_none(email=email)
+        if not user:
+            raise NotFoundException("User not found")
+        # request.app.emit("password_reset", user=user)
+
 
     @get("/user")
     async def get_user(self, request: Request) -> User:
