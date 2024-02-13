@@ -9,10 +9,8 @@ if TYPE_CHECKING:
 
 
 class UserRegisteredMail(Mailable):
-    def __init__(self, user: "User"):
-        token = JWT.encode_token(user)
+    def __init__(self, user: "User", token: str):
         verify_url = f"{settings.app.FRONTEND_URL}/#/verify/{token}"
-
         super().__init__(
             subject="Welcome!",
             to=user.email,

@@ -5,9 +5,10 @@ from litestar.dto import DTOConfig
 from litestar.exceptions import ValidationException, NotAuthorizedException, ClientException, NotFoundException
 from litestar.params import Parameter
 
-from api.dependencies import provide_user_service
+from api.dependencies import provide_user_service, provide_password_reset_service
 from lib.jwt import jwt_auth, JWT
 from models import User
+from models.password_reset import PasswordResetService, PasswordReset
 from models.user import UserService
 from schemas.auth import LoginUserPayload, UpdatePasswordPayload, RegisterUserPayload
 from schemas.user import WriteUserPayload
@@ -20,6 +21,7 @@ class UserDTO(SQLAlchemyDTO[User]):
 class AuthController(Controller):
     dependencies = {
         "user_service": Provide(provide_user_service),
+        "password_reset_service": Provide(provide_password_reset_service),
     }
     return_dto = UserDTO
 
@@ -55,6 +57,23 @@ class AuthController(Controller):
             response_body=user,
         )
 
+    @post("/login")
+    async def login(
+            self,
+            user_service: UserService,
+            data: LoginUserPayload,
+    ) -> Response[User]:
+        user = await user_service.get_one_or_none(email=data.email)
+        if not user:
+            raise NotAuthorizedException("Invalid credentials")
+        if not user.verify_password(data.password.get_secret_value()):
+            raise NotAuthorizedException("Invalid credentials")
+        return jwt_auth.login(
+            identifier=str(user.id),
+            token_extras={"email": user.email},
+            response_body=user,
+        )
+
     @post("/verify/{token:str}")
     async def verify_user(
             self,
@@ -77,39 +96,29 @@ class AuthController(Controller):
             response_body=user,
         )
 
-    @post("/login")
-    async def login(
-            self,
-            user_service: UserService,
-            data: LoginUserPayload,
-    ) -> Response[User]:
-        user = await user_service.get_one_or_none(email=data.email)
-        if not user:
-            raise NotAuthorizedException("Invalid credentials")
-        if not user.verify_password(data.password.get_secret_value()):
-            raise NotAuthorizedException("Invalid credentials")
-        return jwt_auth.login(
-            identifier=str(user.id),
-            token_extras={"email": user.email},
-            response_body=user,
-        )
-
-    @post("/password-reset", return_dto=None)
+    @post("/password-reset/{email:str}", return_dto=None)
     async def password_reset(
             self,
             request: Request,
             user_service: UserService,
-
+            password_reset_service: PasswordResetService,
             email: str = Parameter(
                 title="User email",
                 description="A email to retrieve the user",
             ),
-    ) -> None:
+    ) -> dict[str: str]:
         user = await user_service.get_one_or_none(email=email)
         if not user:
             raise NotFoundException("User not found")
-        # request.app.emit("password_reset", user=user)
 
+        password_reset = await password_reset_service.get_one_or_none(email=user.email)
+        if password_reset:
+            await password_reset_service.delete(password_reset.id)
+
+        token = PasswordReset.create_token()
+        await password_reset_service.create(PasswordReset(email=user.email, token=token), auto_commit=True)
+        request.app.emit("password_reset", user=user, token=token)
+        return {"result": "OK"}
 
     @get("/user")
     async def get_user(self, request: Request) -> User:

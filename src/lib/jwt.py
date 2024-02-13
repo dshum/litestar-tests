@@ -1,5 +1,6 @@
-from datetime import timedelta
+from datetime import timedelta, datetime
 from typing import Any, Optional, TYPE_CHECKING
+from uuid import UUID
 
 from litestar.connection import ASGIConnection
 from litestar.security.jwt import JWTAuth, Token
@@ -29,9 +30,18 @@ jwt_auth = JWTAuth[User](
 
 class JWT:
     @classmethod
-    async def encode_token(cls, user: User) -> str:
-        return await jwt_auth.create_token(
-            identifier=user.id,
+    def encode_token_raw(cls, user: User) -> str:
+        token = Token(
+            sub=str(user.id),
+            exp=datetime.now() + timedelta(minutes=settings.jwt.TTL),
+            extras={"email": user.email}
+        )
+        return token.encode(secret=jwt_auth.token_secret, algorithm=jwt_auth.algorithm)
+
+    @classmethod
+    def encode_token(cls, user: User) -> str:
+        return jwt_auth.create_token(
+            identifier=str(user.id),
             token_extras={"email": user.email}
         )
 

@@ -7,6 +7,7 @@ from litestar.repository.filters import LimitOffset, OrderBy
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from models.model_action_log import ModelActionLogService
+from models.password_reset import PasswordResetService
 from models.request_log import RequestLogService
 from models.test import TestService
 from models.topic import TopicService
@@ -45,3 +46,10 @@ async def provide_topic_service(db_session: AsyncSession, log_service: ModelActi
 
 async def provide_test_service(db_session: AsyncSession, log_service: ModelActionLogService) -> TestService:
     return TestService(session=db_session, log_service=log_service)
+
+
+async def provide_password_reset_service(
+        db_session: AsyncSession,
+        log_service: ModelActionLogService,
+) -> PasswordResetService:
+    return PasswordResetService(session=db_session, log_service=log_service)
