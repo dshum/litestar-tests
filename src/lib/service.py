@@ -7,7 +7,7 @@ from advanced_alchemy.service import SQLAlchemyAsyncRepositoryService as _SQLAlc
 from litestar.pagination import OffsetPagination
 from sqlalchemy.ext.asyncio import AsyncSession, async_scoped_session
 
-from models.model_action_log import ModelActionLogService, ActionType
+from models.model_action_log import ModelActionLogService
 
 
 class SQLAlchemyAsyncRepositoryLoggedService(_SQLAlchemyAsyncRepositoryService[ModelT]):
@@ -40,7 +40,7 @@ class SQLAlchemyAsyncRepositoryLoggedService(_SQLAlchemyAsyncRepositoryService[M
             item_id: Any | None = None,
             **kwargs: Any
     ) -> ModelT:
-        await self.log_service.log(data, item_id, ActionType.UPDATE)
+        # await self.log_service.log(ModelT, item_id, ActionType.UPDATE)
         return await super().update(data, item_id, **kwargs)
 
     async def delete(
@@ -48,5 +48,5 @@ class SQLAlchemyAsyncRepositoryLoggedService(_SQLAlchemyAsyncRepositoryService[M
             item_id: Any | None = None,
             **kwargs: Any
     ) -> ModelT:
-        await self.log_service.log(None, item_id, ActionType.DELETE)
+        # await self.log_service.log(ModelT, item_id, ActionType.DELETE)
         return await super().delete(item_id, **kwargs)

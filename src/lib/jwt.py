@@ -1,6 +1,5 @@
 from datetime import timedelta, datetime
-from typing import Any, Optional, TYPE_CHECKING
-from uuid import UUID
+from typing import Any, Optional
 
 from litestar.connection import ASGIConnection
 from litestar.security.jwt import JWTAuth, Token

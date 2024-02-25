@@ -9,11 +9,10 @@ from sqlalchemy import String
 from sqlalchemy.ext.hybrid import hybrid_property
 from sqlalchemy.orm import Mapped, mapped_column
 
-from lib.jwt import JWT
 from lib.service import SQLAlchemyAsyncRepositoryLoggedService
 
 if TYPE_CHECKING:
-    from models import User
+    pass
 
 
 class PasswordReset(UUIDAuditBase):

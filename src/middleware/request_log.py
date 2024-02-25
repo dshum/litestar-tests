@@ -1,8 +1,4 @@
-import aiohttp
 from litestar import Request, Response
-
-from lib.database import async_sessionmaker
-from models.request_log import RequestLogService
 
 
 async def log_request_handler(request: Request) -> None:

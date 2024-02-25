@@ -10,7 +10,7 @@ from lib.jwt import jwt_auth, JWT
 from models import User
 from models.password_reset import PasswordResetService, PasswordReset
 from models.user import UserService
-from schemas.auth import LoginUserPayload, UpdatePasswordPayload, RegisterUserPayload
+from schemas.auth import LoginUserPayload, UpdatePasswordPayload, RegisterUserPayload, ResetPasswordPayload
 from schemas.user import WriteUserPayload
 
 
@@ -96,29 +96,29 @@ class AuthController(Controller):
             response_body=user,
         )
 
-    @post("/password-reset/{email:str}", return_dto=None)
+    @post("/reset-password", return_dto=None)
     async def password_reset(
             self,
             request: Request,
             user_service: UserService,
             password_reset_service: PasswordResetService,
-            email: str = Parameter(
-                title="User email",
-                description="A email to retrieve the user",
-            ),
-    ) -> dict[str: str]:
-        user = await user_service.get_one_or_none(email=email)
+            data: ResetPasswordPayload,
+    ) -> None:
+        user = await user_service.get_one_or_none(email=data.email)
         if not user:
             raise NotFoundException("User not found")
 
-        password_reset = await password_reset_service.get_one_or_none(email=user.email)
-        if password_reset:
-            await password_reset_service.delete(password_reset.id)
-
+        data = data.model_dump()
+        await password_reset_service.upsert(data=data, item_id=None, match_fields=["email"])
         token = PasswordReset.create_token()
-        await password_reset_service.create(PasswordReset(email=user.email, token=token), auto_commit=True)
+        # password_reset = await password_reset_service.get_one_or_none(email=user.email)
+        # if password_reset:
+        #     data = data.model_dump()
+        #     await password_reset_service.upsert(item_id="email", data=data)
+        #
+        # await password_reset_service.create(PasswordReset(email=user.email, token=token), auto_commit=True)
         request.app.emit("password_reset", user=user, token=token)
-        return {"result": "OK"}
+        return None
 
     @get("/user")
     async def get_user(self, request: Request) -> User:

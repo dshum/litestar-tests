@@ -3,7 +3,7 @@ from advanced_alchemy.base import UUIDBase
 from advanced_alchemy.config import EngineConfig
 from litestar.contrib.sqlalchemy.plugins import SQLAlchemyAsyncConfig
 from sqlalchemy.ext.asyncio import async_sessionmaker
-from sqlalchemy.orm import DeclarativeBase
+from sqlalchemy.orm import sessionmaker
 
 from lib import settings
 
@@ -16,9 +16,10 @@ db_config = SQLAlchemyAsyncConfig(
     connection_string=settings.db.URL,
     metadata=Base.metadata,
     session_config=AsyncSessionConfig(expire_on_commit=False),
-    engine_config=EngineConfig(echo=settings.db.ECHO)
+    engine_config=EngineConfig(echo=settings.db.ECHO),
 )
 
+sync_sessionmaker = sessionmaker(expire_on_commit=False)
 async_sessionmaker = async_sessionmaker(expire_on_commit=False)
 
 

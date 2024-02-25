@@ -20,3 +20,7 @@ class UpdatePasswordPayload(BaseModel):
     current_password: SecretStr
     password: SecretStr
     confirm_password: SecretStr
+
+
+class ResetPasswordPayload(BaseModel):
+    email: EmailStr

@@ -1,7 +1,6 @@
 from typing import TYPE_CHECKING
 
 from lib import settings
-from lib.jwt import JWT
 from lib.mail import Mailable
 
 if TYPE_CHECKING:

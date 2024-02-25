@@ -7,7 +7,7 @@ from mails.password_reset import PasswordResetMail
 from mails.user_registered import UserRegisteredMail
 
 if TYPE_CHECKING:
-    from models import User, PasswordReset
+    from models import User
 
 
 @listener("user_registered")

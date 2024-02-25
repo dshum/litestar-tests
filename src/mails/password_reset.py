@@ -4,7 +4,7 @@ from lib import settings
 from lib.mail import Mailable
 
 if TYPE_CHECKING:
-    from models import User, PasswordReset
+    from models import User
 
 
 class PasswordResetMail(Mailable):

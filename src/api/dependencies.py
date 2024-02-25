@@ -1,6 +1,5 @@
 from typing import Literal
 
-from advanced_alchemy.filters import SearchFilter
 from litestar import Request
 from litestar.params import Parameter
 from litestar.repository.filters import LimitOffset, OrderBy
@@ -11,7 +10,7 @@ from models.password_reset import PasswordResetService
 from models.request_log import RequestLogService
 from models.test import TestService
 from models.topic import TopicService
-from models.user import UserRepository, UserService
+from models.user import UserService
 
 
 async def provide_limit_offset_pagination(

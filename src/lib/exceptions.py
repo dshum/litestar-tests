@@ -1,9 +1,7 @@
 from advanced_alchemy.exceptions import ConflictError
-from litestar import Response, MediaType, Request
-from litestar.exceptions import ValidationException, HTTPException, NotAuthorizedException
+from litestar import Response, Request
+from litestar.exceptions import HTTPException
 from sentry_sdk import capture_exception
-
-from lib import settings
 
 
 def default_exception_handler(request: Request, exc: HTTPException) -> Response:
