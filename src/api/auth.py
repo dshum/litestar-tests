@@ -74,19 +74,35 @@ class AuthController(Controller):
             response_body=user,
         )
 
+    @post("/verify-email/{email:str}")
+    async def verify_email(
+            self,
+            request: Request,
+            user_service: UserService,
+            email: str = Parameter(
+                title="User email",
+                description="A email to verify",
+            ),
+    ) -> None:
+        user = await user_service.get_one_or_none(email=email)
+        if not user:
+            raise NotFoundException("User not found")
+        request.app.emit("verify_email", user=user)
+        return None
+
     @post("/verify/{token:str}")
     async def verify_user(
             self,
             user_service: UserService,
             token: str = Parameter(
                 title="JWT Token",
-                description="A token to verify the user",
+                description="A user token to verify",
             ),
     ) -> Response[User]:
         token = JWT.decode_token(token)
         user = await user_service.get_one_or_none(id=token.sub)
         if not user:
-            raise NotAuthorizedException("User not found")
+            raise NotFoundException("User not found")
         if user.is_verified:
             raise ClientException("User is already verified")
         user = await user_service.update(User(is_verified=True), user.id, auto_commit=True)

@@ -1,0 +1,8 @@
+{% extends "mails/layouts/default.html" %}
+
+{% block content %}
+  <h1>You requested email verification</h1>
+  <p>
+    <a href="{{ verify_url }}">Verify your account</a>
+  </p>
+{% endblock %}
